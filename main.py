@@ -34,6 +34,8 @@ while True:
         barra1.draw()
         barra2.draw()
         bola.draw()
+        janela.draw_text(str(contarParticipante), width/2 - 100, 50, size=48, color=(255, 255, 255), font_name="Arial", bold=True)
+        janela.draw_text(str(contarInimigo), width/2 + 100, 50, size=48, color=(255, 255, 255), font_name="Arial", bold=True)
         janela.update()
         ia_ativa = False
         if teclado.key_pressed("SPACE"):
@@ -56,7 +58,7 @@ while True:
         
 
         if bola.x <= 0 or (bola.x + bola.width >= janela.width):
-            if(bola.x == 0):
+            if(bola.x <= 0):
                 contarInimigo += 1 
             
             if(bola.x + bola.width >= janela.width):
@@ -96,4 +98,6 @@ while True:
         barra1.draw()
         barra2.draw()
         bola.draw()
+        janela.draw_text(str(contarParticipante), width/2 - 100, 50, size=48, color=(255, 255, 255), font_name="Arial", bold=True)
+        janela.draw_text(str(contarInimigo), width/2 + 100, 50, size=48, color=(255, 255, 255), font_name="Arial", bold=True)
         janela.update()
