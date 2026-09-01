@@ -18,14 +18,14 @@ barra1.set_position(30, height / 2 - barra1.height / 2)
 barra2.set_position(755, height / 2 - barra2.height / 2)
 barra3.set_position(random.uniform(width / 3, 2 * width / 3) , random.uniform(0, height - barra3.height))
 
-velX = 250
-velY = 250
+velX = 300
+velY = 300
 vel_barra1 = 400
-vel_barra2 = 225
-
+vel_barra2 = 270
 start = False
-barra3_visivel = True
-cronometro = 0.0
+barra3_visivel = False
+tempo = 0.0
+tempoJogo = 0.0
 contarParticipante = 0
 contarInimigo = 0
 
@@ -38,15 +38,13 @@ while True:
             velX = -250
             start = True
     else:
-        cronometro += dt
-        if cronometro >= 3.0:
+        tempo += dt
+        tempoJogo += dt
+        if tempo >= 3.0:
             barra3_visivel = not barra3_visivel
-            cronometro = 0.0
+            tempo = 0.0
             if barra3_visivel:
-                barra3.set_position(
-                    random.uniform(width / 3, 2 * width / 3),
-                    random.uniform(0, height - barra3.height)
-                )
+                barra3.set_position(random.uniform(width / 3, 2 * width / 3),random.uniform(0, height - barra3.height))
 
         bola.x += velX * dt
         bola.y += velY * dt
@@ -68,8 +66,8 @@ while True:
             barra1.set_position(30, height / 2 - barra1.height / 2)
             barra2.set_position(755, height / 2 - barra2.height / 2)
             barra3.set_position(random.uniform(width / 3, 2 * width / 3), random.uniform(0, height - barra3.height))
-            barra3_visivel = True
-            cronometro = 0.0
+            barra3_visivel = False
+            tempo = 0.0
             start = False
 
         if bola.collided(barra1):
@@ -103,6 +101,7 @@ while True:
     if barra3_visivel:
         barra3.draw()
     bola.draw()
+    janela.draw_text(str(f"Tempo: {int(tempoJogo)}"), width - 200, 25, size=24, color=(255,255,255), font_name="Arial", bold=False)
     janela.draw_text(str(contarParticipante), width / 2 - 100, 50, size=48, color=(255, 255, 255), font_name="Arial", bold=True)
     janela.draw_text(str(contarInimigo), width / 2 + 100, 50, size=48, color=(255, 255, 255), font_name="Arial", bold=True)
 
