@@ -1,9 +1,10 @@
 from PPlay.window import Window
+
+janela = Window(1920, 1080)
+
 import menu
 import dificuldade
 import jogo
-
-janela = Window(1920, 1080)
 
 estado = "MENU"
 nivel_dificuldade = "M" 
@@ -15,7 +16,7 @@ while True:
         estado = menu.run(janela)
         
     elif estado == "JOGANDO":
-        estado = jogo.run(janela, nivel_dificuldade)
+        estado = jogo.run(janela, nivel_dificuldade, delta_time)
         
     elif estado == "DIFICULDADE":
         estado, nivel_dificuldade = dificuldade.run(janela, nivel_dificuldade)

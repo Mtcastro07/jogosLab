@@ -17,7 +17,7 @@ btn_voltar = Button(600, 60, "voltar", (128, 0, 0))
 btn_voltar.set_position(pos_x - 140, pos_y + 500)
 
 def run(janela, dificuldade_atual):
-    janela.set_background_color((40, 40, 50))
+    janela.set_background_color((0,0,0))
     
     teclado = Window.get_keyboard()
     if teclado.key_down("ESC"):

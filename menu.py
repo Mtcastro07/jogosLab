@@ -16,7 +16,7 @@ btn_sair = Button(600, 60, "sair", (128, 0, 0))
 btn_sair.set_position(pos_x - 140, pos_y + 500)
 
 def run(janela):
-    janela.set_background_color((40, 40, 50))
+    janela.set_background_color((0, 0, 0))
 
     if btn_iniciar.is_clicked():
         return "JOGANDO"
