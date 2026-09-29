@@ -40,28 +40,27 @@ def run(janela, dificuldade, delta_time):
     if teclado.key_down("ESC"):
         return "MENU"
 
-    for linha in monstros:
-        for monstro in linha:
-            monstro.x += velocidade_monstro * direcao * delta_time
+    todos = [m for linha in monstros for m in linha]
+    if len(todos) == 0:
+        monstros = criar_monstros()
+        todos = [m for linha in monstros for m in linha]
 
-    esquerda = monstros[0][0]
-    direita = monstros[0][-1]
-    baixo = monstros[-1][0]
+    for monstro in todos:
+        monstro.x += velocidade_monstro * direcao * delta_time
 
-    if (esquerda.x <= 0 and direcao == -1) or (direita.x + direita.width >= 1920 and direcao == 1):
+    esquerda = min(m.x for m in todos)
+    direita = max(m.x + m.width for m in todos)
+    baixo = max(m.y + m.height for m in todos)
+
+    if (esquerda <= 0 and direcao == -1) or (direita >= 1920 and direcao == 1):
         direcao *= -1
-        for linha in monstros:
-            for monstro in linha:
-                monstro.y += descida
+        for monstro in todos:
+            monstro.y += descida
 
-    if baixo.y + baixo.height >= nave.y:
+    if baixo >= nave.y:
         monstros = criar_monstros()
         direcao = 1
         return "MENU"
-
-    for linha in monstros:
-        for monstro in linha:
-            monstro.draw()
 
     if teclado.key_pressed("LEFT"):
         nave.x -= velocidade_nave[dificuldade] * delta_time
@@ -82,10 +81,24 @@ def run(janela, dificuldade, delta_time):
 
     for tiro in tiros[:]:
         tiro.y -= velocidade_tiro * delta_time
-        if tiro.y + tiro.height < 0:
+        acertou = False
+        for linha in monstros:
+            for monstro in linha:
+                if tiro.collided(monstro):
+                    linha.remove(monstro)
+                    acertou = True
+                    break
+            if acertou:
+                break
+
+        if acertou or tiro.y + tiro.height < 0:
             tiros.remove(tiro)
         else:
             tiro.draw()
+
+    for linha in monstros:
+        for monstro in linha:
+            monstro.draw()
 
     nave.draw()
     janela.draw_text(f"FPS: {int(janela.get_fps())}", 10, 10, size=30, color=(255, 255, 255))
