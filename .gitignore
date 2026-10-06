@@ -12,3 +12,6 @@ env/
 # Libraries that might have been copied locally
 pygame/
 pygame-ce/
+
+# Config local do Claude Code
+~/
