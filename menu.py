@@ -22,6 +22,8 @@ def run(janela):
         return "JOGANDO"
     elif btn_dificuldade.is_clicked():
         return "DIFICULDADE"
+    elif btn_ranking.is_clicked():
+        return "RANKING"
     elif btn_sair.is_clicked():
         janela.close()
 

@@ -1,6 +1,7 @@
 from PPlay.window import Window
 from PPlay.sprite import Sprite
 import random
+from datetime import datetime
 
 velocidade_nave = {"F": 500, "M": 700, "D": 900}
 tempo_entre_tiros = {"F": 0.5, "M": 0.3, "D": 0.15}
@@ -31,6 +32,8 @@ colunas = 6
 velocidade_monstro = 150
 descida = 30
 direcao = 1
+fase = 1
+multiplicador_velocidade = 0.35
 
 modelo = Sprite("monstro.png")
 passo_x = modelo.width * 1.5
@@ -56,10 +59,17 @@ def criar_monstros():
 
 monstros = criar_monstros()
 
+def salvar_ranking():
+    nome = input("Fim de jogo! Digite seu nome: ").replace(";", "")
+    data = datetime.now().strftime("%d/%m/%Y")
+    with open("ranking.txt", "a") as arquivo:
+        arquivo.write(f"{nome};{pontos};{data}\n")
+
 def reiniciar():
-    global monstros, direcao, vidas, invencivel, recarga_monstros, pontos
+    global monstros, direcao, vidas, invencivel, recarga_monstros, pontos, fase
     monstros = criar_monstros()
     direcao = 1
+    fase = 1
     vidas = 3
     pontos = 0
     invencivel = 0
@@ -69,7 +79,7 @@ def reiniciar():
     nave.set_position(1920 / 2 - nave.width / 2, 1080 - nave.height - 20)
 
 def run(janela, dificuldade, delta_time):
-    global recarga, direcao, monstros, recarga_monstros, vidas, invencivel, pontos, frames, tempo_fps, fps, origem_x, origem_y
+    global recarga, direcao, monstros, recarga_monstros, vidas, invencivel, pontos, frames, tempo_fps, fps, origem_x, origem_y, fase
     janela.set_background_color((0, 0, 0))
 
     frames += 1
@@ -85,12 +95,18 @@ def run(janela, dificuldade, delta_time):
 
     todos = [m for linha in monstros for m in linha if m != None]
     if len(todos) == 0:
+        fase += 1
+        direcao = 1
+        tiros.clear()
+        tiros_monstros.clear()
         monstros = criar_monstros()
         todos = [m for linha in monstros for m in linha if m != None]
 
-    origem_x += velocidade_monstro * direcao * delta_time
+    aumento = 1 + (fase - 1) * multiplicador_velocidade
+
+    origem_x += velocidade_monstro * aumento * direcao * delta_time
     for monstro in todos:
-        monstro.x += velocidade_monstro * direcao * delta_time
+        monstro.x += velocidade_monstro * aumento * direcao * delta_time
 
     esquerda = min(m.x for m in todos)
     direita = max(m.x + m.width for m in todos)
@@ -109,6 +125,7 @@ def run(janela, dificuldade, delta_time):
             monstro.y += descida
 
     if baixo >= nave.y:
+        salvar_ranking()
         reiniciar()
         return "MENU"
 
@@ -123,7 +140,7 @@ def run(janela, dificuldade, delta_time):
         nave.x = 1920 - nave.width
 
     recarga -= delta_time
-    if teclado.key_down("SPACE") and recarga <= 0:
+    if teclado.key_pressed("SPACE") and recarga <= 0:
         tiro = Sprite("tiro.png")
         tiro.set_position(nave.x + nave.width / 2 - tiro.width / 2, nave.y)
         tiros.append(tiro)
@@ -135,7 +152,7 @@ def run(janela, dificuldade, delta_time):
         tiro = Sprite("tiro_monstro.png")
         tiro.set_position(atirador.x + atirador.width / 2 - tiro.width / 2, atirador.y + atirador.height)
         tiros_monstros.append(tiro)
-        recarga_monstros = tempo_tiro_monstro[dificuldade] * random.uniform(0.7, 1.3)
+        recarga_monstros = tempo_tiro_monstro[dificuldade] * random.uniform(0.7, 1.3) / aumento
 
     for tiro in tiros[:]:
         tiro.y -= velocidade_tiro * delta_time
@@ -148,7 +165,7 @@ def run(janela, dificuldade, delta_time):
             monstro = monstros[l][c]
             if monstro != None and tiro.collided(monstro):
                 monstros[l][c] = None
-                pontos += (linhas - l) * 10
+                pontos += (linhas - l) * 10 * fase
                 acertou = True
 
         if acertou or tiro.y + tiro.height < 0:
@@ -164,6 +181,7 @@ def run(janela, dificuldade, delta_time):
             tiros_monstros.remove(tiro)
             vidas -= 1
             if vidas == 0:
+                salvar_ranking()
                 reiniciar()
                 return "MENU"
             nave.set_position(1920 / 2 - nave.width / 2, 1080 - nave.height - 20)
@@ -183,6 +201,7 @@ def run(janela, dificuldade, delta_time):
 
     janela.draw_text(f"FPS: {fps}", 10, 10, size=30, color=(255, 255, 255))
     janela.draw_text(f"Pontos: {pontos}", 1920 / 2 - 80, 10, size=30, color=(255, 255, 255))
+    janela.draw_text(f"Fase: {fase}", 1920 / 2 - 80, 50, size=30, color=(255, 255, 255))
     for v in range(vidas):
         coracao.set_position(1900 - (v + 1) * (coracao.width + 10), 10)
         coracao.draw()

@@ -5,6 +5,7 @@ janela = Window(1920, 1080)
 import menu
 import dificuldade
 import jogo
+import ranking
 
 estado = "MENU"
 nivel_dificuldade = "M" 
@@ -20,5 +21,8 @@ while True:
         
     elif estado == "DIFICULDADE":
         estado, nivel_dificuldade = dificuldade.run(janela, nivel_dificuldade)
+
+    elif estado == "RANKING":
+        estado = ranking.run(janela)
 
     janela.update()
