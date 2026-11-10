@@ -59,15 +59,34 @@ def criar_monstros():
 
 monstros = criar_monstros()
 
+monstro_especial = Sprite("monstro_especial.png")
+tempo_piscar = 0
+pisca = True
+
+def escolher_especial():
+    vivos = []
+    for linha in monstros:
+        for m in linha:
+            if m != None:
+                vivos.append(m)
+    if len(vivos) == 0:
+        return None
+    return random.choice(vivos)
+
+especial = escolher_especial()
+
 def salvar_ranking():
-    nome = input("Fim de jogo! Digite seu nome: ").replace(";", "")
-    data = datetime.now().strftime("%d/%m/%Y")
-    with open("ranking.txt", "a") as arquivo:
-        arquivo.write(f"{nome};{pontos};{data}\n")
+    nome = input("Fim de jogo! Digite seu nome: ")
+    agora = datetime.now()
+    data = f"{agora.day}/{agora.month}/{agora.year}"
+    arquivo = open("ranking.txt", "a")
+    arquivo.write(f"{nome};{pontos};{data}\n")
+    arquivo.close()
 
 def reiniciar():
-    global monstros, direcao, vidas, invencivel, recarga_monstros, pontos, fase
+    global monstros, direcao, vidas, invencivel, recarga_monstros, pontos, fase, especial
     monstros = criar_monstros()
+    especial = escolher_especial()
     direcao = 1
     fase = 1
     vidas = 3
@@ -79,7 +98,7 @@ def reiniciar():
     nave.set_position(1920 / 2 - nave.width / 2, 1080 - nave.height - 20)
 
 def run(janela, dificuldade, delta_time):
-    global recarga, direcao, monstros, recarga_monstros, vidas, invencivel, pontos, frames, tempo_fps, fps, origem_x, origem_y, fase
+    global recarga, direcao, monstros, recarga_monstros, vidas, invencivel, pontos, frames, tempo_fps, fps, origem_x, origem_y, fase, especial, tempo_piscar, pisca
     janela.set_background_color((0, 0, 0))
 
     frames += 1
@@ -93,14 +112,20 @@ def run(janela, dificuldade, delta_time):
     if teclado.key_down("ESC"):
         return "MENU"
 
-    todos = [m for linha in monstros for m in linha if m != None]
+    todos = []
+    for linha in monstros:
+        for m in linha:
+            if m != None:
+                todos.append(m)
+
     if len(todos) == 0:
         fase += 1
         direcao = 1
-        tiros.clear()
-        tiros_monstros.clear()
         monstros = criar_monstros()
-        todos = [m for linha in monstros for m in linha if m != None]
+        especial = escolher_especial()
+        for linha in monstros:
+            for m in linha:
+                todos.append(m)
 
     aumento = 1 + (fase - 1) * multiplicador_velocidade
 
@@ -112,11 +137,12 @@ def run(janela, dificuldade, delta_time):
     direita = max(m.x + m.width for m in todos)
 
     baixo = 0
-    for l in range(linhas - 1, -1, -1):
-        vivos = [m for m in monstros[l] if m != None]
-        if len(vivos) > 0:
-            baixo = vivos[0].y + vivos[0].height
-            break
+    l = linhas - 1
+    while l >= 0 and baixo == 0:
+        for m in monstros[l]:
+            if m != None:
+                baixo = m.y + m.height
+        l -= 1
 
     if (esquerda <= 0 and direcao == -1) or (direita >= 1920 and direcao == 1):
         direcao *= -1
@@ -144,7 +170,7 @@ def run(janela, dificuldade, delta_time):
         tiro = Sprite("tiro.png")
         tiro.set_position(nave.x + nave.width / 2 - tiro.width / 2, nave.y)
         tiros.append(tiro)
-        recarga = tempo_entre_tiros[dificuldade]
+        recarga = tempo_entre_tiros[dificuldade] / aumento
 
     recarga_monstros -= delta_time
     if recarga_monstros <= 0:
@@ -158,14 +184,21 @@ def run(janela, dificuldade, delta_time):
         tiro.y -= velocidade_tiro * delta_time
         acertou = False
 
-        c = int((tiro.x + tiro.width / 2 - origem_x) // passo_x)
-        l = int((tiro.y - origem_y) // passo_y)
+        c = int((tiro.x + tiro.width / 2 - origem_x) / passo_x)
+        l = int((tiro.y - origem_y) / passo_y)
 
-        if tiro.y <= baixo and 0 <= l < linhas and 0 <= c < colunas:
+        if tiro.y <= baixo and l >= 0 and l < linhas and c >= 0 and c < colunas:
             monstro = monstros[l][c]
             if monstro != None and tiro.collided(monstro):
-                monstros[l][c] = None
-                pontos += (linhas - l) * 10 * fase
+                if monstro == especial:
+                    for i in range(colunas):
+                        if monstros[l][i] != None:
+                            monstros[l][i] = None
+                            pontos += (linhas - l) * 10 * fase
+                    especial = escolher_especial()
+                else:
+                    monstros[l][c] = None
+                    pontos += (linhas - l) * 10 * fase
                 acertou = True
 
         if acertou or tiro.y + tiro.height < 0:
@@ -191,18 +224,29 @@ def run(janela, dificuldade, delta_time):
         else:
             tiro.draw()
 
+    tempo_piscar += delta_time
+    if tempo_piscar >= 0.15:
+        pisca = not pisca
+        tempo_piscar = 0
+
     for linha in monstros:
         for monstro in linha:
             if monstro != None:
-                monstro.draw()
+                if monstro == especial and pisca == True:
+                    monstro_especial.set_position(monstro.x, monstro.y)
+                    monstro_especial.draw()
+                else:
+                    monstro.draw()
 
-    if invencivel <= 0 or int(invencivel * 10) % 2 == 0:
+    if invencivel <= 0 or pisca == True:
         nave.draw()
 
     janela.draw_text(f"FPS: {fps}", 10, 10, size=30, color=(255, 255, 255))
     janela.draw_text(f"Pontos: {pontos}", 1920 / 2 - 80, 10, size=30, color=(255, 255, 255))
     janela.draw_text(f"Fase: {fase}", 1920 / 2 - 80, 50, size=30, color=(255, 255, 255))
+    x = 1900 - coracao.width
     for v in range(vidas):
-        coracao.set_position(1900 - (v + 1) * (coracao.width + 10), 10)
+        coracao.set_position(x, 10)
         coracao.draw()
+        x -= coracao.width + 10
     return "JOGANDO"

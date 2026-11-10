@@ -20,23 +20,24 @@ def run(janela):
 
     jogadores = []
     if os.path.exists("ranking.txt"):
-        with open("ranking.txt") as arquivo:
-            for linha in arquivo:
-                nome, pontos, data = linha.strip().split(";")
-                jogadores.append((nome, int(pontos), data))
+        arquivo = open("ranking.txt")
+        for linha in arquivo:
+            partes = linha.strip().split(";")
+            jogadores.append([int(partes[1]), partes[0], partes[2]])
+        arquivo.close()
 
-    jogadores.sort(key=lambda j: j[1], reverse=True)
+    jogadores.sort(reverse=True)
 
     janela.draw_text("RANKING", 1920 / 2 - 100, 100, size=60, color=(255, 255, 255))
 
-    if len(jogadores) == 0:
-        janela.draw_text("Nenhum jogo salvo ainda", 1920 / 2 - 200, 300, size=40, color=(255, 255, 255))
-
     y = 250
-    for i in range(min(5, len(jogadores))):
-        nome, pontos, data = jogadores[i]
-        janela.draw_text(f"{i + 1}. {nome}   {pontos} pts   {data}", 1920 / 2 - 350, y, size=40, color=(255, 255, 255))
-        y += 70
+    for i in range(5):
+        if i < len(jogadores):
+            pontos = jogadores[i][0]
+            nome = jogadores[i][1]
+            data = jogadores[i][2]
+            janela.draw_text(f"{i + 1}. {nome}   {pontos} pts   {data}", 1920 / 2 - 350, y, size=40, color=(255, 255, 255))
+            y += 70
 
     btn_voltar.draw()
 
